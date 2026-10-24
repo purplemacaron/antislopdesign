@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AntiSlopDesign — Prompt Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#F8FAFC; --surface:#FFFFFF; --ink:#0F172A; --ink-2:#334155;
+    --muted:#64748B; --line:#E2E8F0; --line-strong:#CBD5E1;
+    --accent:#2563EB; --accent-ink:#FFFFFF; --radius:6px;
+    --sans:"Source Han Sans K", "Noto Sans KR", "Source Han Sans SC", "Noto Sans SC", system-ui, sans-serif;
+    --mono:"JetBrains Mono", "Source Han Sans K", "Noto Sans KR", "Noto Sans SC", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  /* Header */
+  header{border-bottom:1px solid var(--line);background:var(--surface)}
+  .bar{max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+  .logo{font-weight:700;font-size:16px;letter-spacing:-0.03em;display:flex;align-items:center;gap:10px}
+  .logo i{width:10px;height:10px;background:var(--ink);display:inline-block}
+  .ver{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:2px 8px;border-radius:999px}
+
+  /* Layout */
+  main{max-width:1200px;margin:0 auto;padding:32px 24px 64px;display:grid;grid-template-columns:340px 1fr;gap:32px}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+
+  h1{font-size:28px;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-bottom:6px}
+  .lead{color:var(--muted);margin-bottom:28px}
+
+  .group{padding:20px 0;border-top:1px solid var(--line)}
+  .label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .label span{font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:0.02em;text-transform:uppercase}
+  .label small{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  /* Segmented */
+  .seg{display:flex;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:3px;gap:3px}
+  .seg button{flex:1;padding:8px 10px;border-radius:4px;font-size:13px;color:var(--muted);transition:background .15s,color .15s}
+  .seg button:hover{color:var(--ink)}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+
+  /* Tier list */
+  .tiers{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden}
+  .tier{width:100%;display:grid;grid-template-columns:16px 1fr auto;gap:12px;align-items:center;text-align:left;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .tier:last-child{border-bottom:0}
+  .tier:hover{background:var(--bg)}
+  .radio{width:14px;height:14px;border:1px solid var(--line-strong);border-radius:50%;position:relative}
+  .tier[aria-pressed="true"] .radio{border-color:var(--ink)}
+  .tier[aria-pressed="true"] .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--ink)}
+  .tier b{display:block;font-size:14px;font-weight:600;letter-spacing:-0.01em}
+  .tier em{font-style:normal;font-size:12px;color:var(--muted)}
+  .tier code{font-family:var(--mono);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+  /* Accent */
+  .swatches{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .sw{height:30px;min-width:30px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:12px;padding:0 10px;color:var(--muted)}
+  .sw.color{padding:0;width:30px}
+  .sw.color::before{content:"";width:16px;height:16px;border-radius:3px;background:var(--c)}
+  .sw[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink)}
+  .custom{position:relative;overflow:hidden;cursor:pointer}
+  .custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .hex{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px}
+
+  /* Output */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;min-height:560px;position:sticky;top:24px}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}
+  .meta{display:flex;gap:8px;flex-wrap:wrap}
+  .tag{font-family:var(--mono);font-size:11px;border:1px solid var(--line);padding:3px 8px;border-radius:999px;color:var(--ink-2)}
+  .actions{display:flex;gap:8px}
+  .btn{height:34px;padding:0 14px;border-radius:var(--radius);border:1px solid var(--line);font-size:13px;font-weight:500;background:var(--surface)}
+  .btn:hover{border-color:var(--line-strong)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn.primary:hover{filter:brightness(0.95)}
+
+  pre#out{flex:1;margin:0;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:520px}
+  pre#out:lang(zh){font-family:"JetBrains Mono", "Source Han Sans SC", "Noto Sans SC", ui-monospace, monospace}
+
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line)}
+  @media (max-width:640px){.stats{grid-template-columns:repeat(3,1fr)}}
+  .stat{padding:14px 16px;border-right:1px solid var(--line)}
+  .stat:last-child{border-right:0}
+  .stat dt{font-size:11px;color:var(--muted);margin-bottom:2px}
+  .stat dd{font-family:var(--mono);font-size:18px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+  .stat.key dd{color:var(--accent)}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,12px);background:var(--ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:var(--radius);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  footer{max-width:1200px;margin:0 auto;padding:0 24px 40px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="logo"><i></i>AntiSlopDesign</div>
+    <span class="ver">v1.1</span>
+  </div>
+</header>
+
+<main>
+  <!-- Controls -->
+  <section>
+    <h1>Prompt Generator</h1>
+    <p class="lead">설정에 맞춰 Anti-Slop 디자인 프롬프트를 만들고 바로 복사하세요.</p>
+
+    <div class="group">
+      <div class="label"><span>Tier</span><small>글자 수</small></div>
+      <div class="tiers" id="tiers">
+        <button class="tier" data-tier="lite"><span class="radio"></span><span><b>Lite</b><em>한 단락, 최소 분량</em></span><code data-count="lite">0</code></button>
+        <button class="tier" data-tier="flash"><span class="radio"></span><span><b>Flash</b><em>균형형, 2단락 지시문</em></span><code data-count="flash">0</code></button>
+        <button class="tier" data-tier="pro"><span class="radio"></span><span><b>Pro</b><em>시스템 프롬프트, 구조화</em></span><code data-count="pro">0</code></button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span>Base Theme</span><small>프롬프트 기본 테마</small></div>
+      <div class="seg" data-key="mode">
+        <button data-value="light">라이트 모드</button>
+        <button data-value="dark">다크 모드</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span>Prompt Language</span><small>출력 언어</small></div>
+      <div class="seg" data-key="lang">
+        <button data-value="en">English</button>
+        <button data-value="zh">中文</button>
+        <button data-value="ko">한국어</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span>Accent Color</span><small>선택 사항</small></div>
+      <div class="swatches" id="swatches">
+        <button class="sw" data-accent="">자동</button>
+        <button class="sw color" data-accent="#2563EB" style="--c:#2563EB" title="#2563EB"></button>
+        <button class="sw color" data-accent="#EA580C" style="--c:#EA580C" title="#EA580C"></button>
+        <button class="sw color" data-accent="#16A34A" style="--c:#16A34A" title="#16A34A"></button>
+        <button class="sw color" data-accent="#E11D48" style="--c:#E11D48" title="#E11D48"></button>
+        <label class="sw custom" id="customSw" title="직접 선택">직접<input type="color" id="picker" value="#0F172A" /></label>
+      </div>
+      <div class="hex" id="hexLabel">자동 — 프롬프트에 HEX 미지정</div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span>Output Format</span><small>복사 형식</small></div>
+      <div class="seg" data-key="format">
+        <button data-value="plain">원문</button>
+        <button data-value="oneline">한 줄</button>
+        <button data-value="code">코드 블록</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <button class="btn" id="reset" style="width:100%">기본값으로 초기화</button>
+    </div>
+  </section>
+
+  <!-- Output -->
+  <section>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="meta" id="meta"></div>
+        <div class="actions">
+          <button class="btn" id="download">TXT 저장</button>
+          <button class="btn primary" id="copy">프롬프트 복사</button>
+        </div>
+      </div>
+      <pre id="out"></pre>
+      <dl class="stats">
+        <div class="stat key"><dt>글자 수</dt><dd id="sChars">0</dd></div>
+        <div class="stat"><dt>공백 제외</dt><dd id="sNoSpace">0</dd></div>
+        <div class="stat"><dt>단어</dt><dd id="sWords">0</dd></div>
+        <div class="stat"><dt>줄</dt><dd id="sLines">0</dd></div>
+        <div class="stat"><dt>UTF-8 바이트</dt><dd id="sBytes">0</dd></div>
+        <div class="stat"><dt>토큰 (추정)</dt><dd id="sTokens">0</dd></div>
+      </dl>
+    </div>
+  </section>
+</main>
+
+<footer>토큰 수는 대략적인 추정치이며 모델마다 다를 수 있습니다.</footer>
+<div class="toast" id="toast">복사되었습니다</div>
+
+<script>
+const DEFAULTS = { tier:'flash', mode:'light', lang:'en', accent:'', format:'plain' };
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem('antislop') || '{}'); } catch {}
+let state = { ...DEFAULTS, ...saved };
+if (!['en','zh','ko'].includes(state.lang)) state.lang = 'en';
+
+/* ---------- Templates ---------- */
+const T = {
+  en: {
+    lite(L, a){
+      return `[NO AI SLOP] Default to ${L ? 'crisp Light Mode (#F8FAFC/#FFFFFF)' : 'refined Dark Mode (#0B0D10/#15181D)'} and clean Sans-Serif/Gothic fonts. Ban ${L ? 'dark/neon themes' : 'neon/glow themes, pure-black voids'}, beige+serif clichés, 3-card layouts, AI buzzwords, emojis, fake barcodes, dummy charts, gibberish text, and plastic skin. Use 1px borders, bold accent${a ? ` (${a})` : ''}, 35mm real optics.`;
+    },
+    flash(L, a){
+      return `[ANTI-SLOP DIRECTIVE] Default strictly to a ${L
+        ? 'clean, high-contrast Light Mode (crisp white/cool-gray surfaces `#FFFFFF`/`#F4F5F7` with deep ink text `#0F172A`)'
+        : 'refined, high-contrast Dark Mode (deep graphite surfaces `#0B0D10`/`#15181D` with soft off-white text `#E6E8EB`)'} and sharp Sans-Serif/Neo-Grotesque (Gothic) typography paired with Monospace numbers.
+Ban ${L ? 'dark neon themes' : 'neon glow effects, pure-black `#000` voids'}, purple/cyan gradients, warm beige+serif templates, 3-card SaaS clichés, heavy shadows, AI buzzwords, emojis, fake barcodes, meaningless mini-charts, duplicate labels, and gibberish micro-text. Enforce Swiss grid precision, ${L ? 'crisp 1px borders' : 'subtle 1px borders (`#262A31`)'}${a ? `, a single accent \`${a}\`` : ''}, and natural 35mm optics.`;
+    },
+    pro(L, a){
+      const acc = a ? ` (\`${a}\`)` : '';
+      return `[SYSTEM: ANTI-AI SLOP & HIGH-CRAFT ${L ? 'LIGHT' : 'DARK'}-MODE ENGINE]
+Eliminate all generic AI aesthetics across UI/code, infographics, and visuals.
+
+1. DEFAULT BASELINE (${L ? 'LIGHT' : 'DARK'} MODE + SANS-SERIF):
+- ${L
+  ? `Always default to a crisp, daylight-first Light Mode palette: clean white/cool-alabaster surfaces (\`#FFFFFF\`, \`#F6F7F9\`), deep carbon/slate typography (\`#0A0D12\`), crisp \`1px\` structural borders (\`#E2E8F0\`), and a single intentional accent color${acc}. Use dark mode or serif fonts ONLY if explicitly requested by the user.`
+  : `Always default to a refined, low-glare Dark Mode palette: deep graphite surfaces (\`#0B0D10\`, \`#15181D\`), soft off-white typography (\`#E6E8EB\`), subtle \`1px\` structural borders (\`#262A31\`), and a single intentional accent color${acc}. Use light mode or serif fonts ONLY if explicitly requested by the user.`}
+- Typography: Enforce modern Gothic / Neo-Grotesque Sans-Serif (Geist, Inter Display, Plus Jakarta Sans, Satoshi, Pretendard) paired with technical Monospace (\`tabular-nums\`) for data and labels. Use tight heading tracking (\`-0.03em\`).
+
+2. STRICT BANS (NEVER USE):
+- Visual & UI Clichés: Ban purple/cyan neon gradients, ${L ? 'dark sci-fi HUDs' : 'glowing sci-fi HUDs, pure-black `#000` voids'}, warm beige+serif templates, symmetrical 3-card SaaS layouts, muddy drop shadows, AI buzzwords ("Unleash/Elevate/Seamless"), and emojis.
+- Infographic & Image Slop: Strictly ban decorative fake barcodes, meaningless filler charts, duplicate node labels, illegible gibberish micro-text, plastic airbrushed skin, and fake HDR bloom. Simulate real 35mm optics and natural daylight.`;
+    }
+  },
+
+  zh: {
+    lite(L, a){
+      return `[NO AI SLOP] 默认使用${L ? '清爽的浅色模式（#F8FAFC/#FFFFFF）' : '精致的深色模式（#0B0D10/#15181D）'}和简洁的无衬线/黑体字体。禁止${L ? '深色/霓虹主题' : '霓虹/发光主题、纯黑背景'}、米色+衬线俗套、三卡片布局、AI 流行词、表情符号、假条形码、虚假图表、乱码文字和塑料感皮肤。使用 1px 边框、醒目的强调色${a ? `（${a}）` : ''}、真实 35mm 光学效果。`;
+    },
+    flash(L, a){
+      return `[ANTI-SLOP DIRECTIVE] 严格默认使用${L
+        ? '干净、高对比度的浅色模式（清爽的白色/冷灰色表面 `#FFFFFF`/`#F4F5F7`，深墨色文字 `#0F172A`）'
+        : '精致、高对比度的深色模式（深石墨色表面 `#0B0D10`/`#15181D`，柔和的米白色文字 `#E6E8EB`）'}，搭配锐利的无衬线/新怪诞（黑体）字体与等宽数字。
+禁止${L ? '深色霓虹主题' : '霓虹发光效果、纯黑 `#000` 背景'}、紫/青渐变、暖米色+衬线模板、三卡片 SaaS 俗套、厚重阴影、AI 流行词、表情符号、假条形码、无意义的迷你图表、重复标签和无法辨认的微小文字。贯彻瑞士网格的精确性、${L ? '清晰的 1px 边框' : '低调的 1px 边框（`#262A31`）'}${a ? `、单一强调色 \`${a}\`` : ''}，以及自然的 35mm 光学效果。`;
+    },
+    pro(L, a){
+      const acc = a ? `（\`${a}\`）` : '';
+      return `[SYSTEM: ANTI-AI SLOP & HIGH-CRAFT ${L ? 'LIGHT' : 'DARK'}-MODE ENGINE]
+在 UI/代码、信息图和视觉内容中消除一切千篇一律的 AI 审美。
+
+1. 默认基线（${L ? '浅色' : '深色'}模式 + 无衬线字体）：
+- ${L
+  ? `始终默认使用清爽、以日光为先的浅色模式配色：干净的白色/冷雪花石色表面（\`#FFFFFF\`、\`#F6F7F9\`），深碳色/石板色文字（\`#0A0D12\`），清晰的 \`1px\` 结构边框（\`#E2E8F0\`），以及一个经过深思的强调色${acc}。仅在用户明确要求时才使用深色模式或衬线字体。`
+  : `始终默认使用精致、低眩光的深色模式配色：深石墨色表面（\`#0B0D10\`、\`#15181D\`），柔和的米白色文字（\`#E6E8EB\`），低调的 \`1px\` 结构边框（\`#262A31\`），以及一个经过深思的强调色${acc}。仅在用户明确要求时才使用浅色模式或衬线字体。`}
+- 字体排印：强制使用现代黑体/新怪诞无衬线字体（Geist、Inter Display、Plus Jakarta Sans、Satoshi、Pretendard；中文使用思源黑体 / Noto Sans SC、PingFang SC），数据和标签搭配技术感等宽字体（\`tabular-nums\`）。标题字距收紧（\`-0.03em\`）。
+
+2. 严格禁止（绝不使用）：
+- 视觉与 UI 俗套：禁止紫/青霓虹渐变、${L ? '深色科幻 HUD' : '发光科幻 HUD、纯黑 `#000` 背景'}、暖米色+衬线模板、对称三卡片 SaaS 布局、浑浊的投影、AI 流行词（"Unleash/Elevate/Seamless"、"赋能/颠覆/无缝"）以及表情符号。
+- 信息图与图像劣质内容：严格禁止装饰性假条形码、无意义的填充图表、重复的节点标签、无法辨认的乱码微小文字、塑料般过度磨皮的皮肤和虚假 HDR 光晕。模拟真实的 35mm 光学效果与自然日光。`;
+    }
+  },
+
+  ko: {
+    lite(L, a){
+      return `[NO AI SLOP] 기본값은 ${L ? '선명한 라이트 모드(#F8FAFC/#FFFFFF)' : '정제된 다크 모드(#0B0D10/#15181D)'}와 깔끔한 산세리프/고딕 폰트. ${L ? '다크/네온 테마' : '네온/글로우 테마, 순수 블랙 배경'}, 베이지+세리프 클리셰, 3-카드 레이아웃, AI 유행어, 이모지, 가짜 바코드, 더미 차트, 의미 없는 텍스트, 플라스틱 피부 금지. 1px 테두리, 과감한 포인트 컬러${a ? `(${a})` : ''}, 실제 35mm 광학 사용.`;
+    },
+    flash(L, a){
+      return `[ANTI-SLOP DIRECTIVE] 기본값은 엄격하게 ${L
+        ? '깔끔한 고대비 라이트 모드(선명한 화이트/쿨그레이 표면 `#FFFFFF`/`#F4F5F7`, 진한 잉크 텍스트 `#0F172A`)'
+        : '정제된 고대비 다크 모드(깊은 그래파이트 표면 `#0B0D10`/`#15181D`, 부드러운 오프화이트 텍스트 `#E6E8EB`)'}와 날카로운 산세리프/네오 그로테스크(고딕) 타이포그래피, 모노스페이스 숫자 조합으로 한다.
+${L ? '다크 네온 테마' : '네온 글로우 효과, 순수 블랙 `#000` 배경'}, 보라/시안 그라데이션, 따뜻한 베이지+세리프 템플릿, 3-카드 SaaS 클리셰, 무거운 그림자, AI 유행어, 이모지, 가짜 바코드, 의미 없는 미니 차트, 중복 라벨, 알아볼 수 없는 마이크로 텍스트를 금지한다. 스위스 그리드의 정밀함, ${L ? '선명한 1px 테두리' : '은은한 1px 테두리(`#262A31`)'}${a ? `, 단일 포인트 컬러 \`${a}\`` : ''}, 자연스러운 35mm 광학을 적용한다.`;
+    },
+    pro(L, a){
+      const acc = a ? `(\`${a}\`)` : '';
+      return `[SYSTEM: ANTI-AI SLOP & HIGH-CRAFT ${L ? 'LIGHT' : 'DARK'}-MODE ENGINE]
+UI/코드, 인포그래픽, 비주얼 전반에서 모든 범용 AI 미감을 제거한다.
+
+1. 기본 베이스라인 (${L ? '라이트' : '다크'} 모드 + 산세리프):
+- ${L
+  ? `항상 선명한 데이라이트 우선 라이트 모드 팔레트를 기본으로 한다: 깨끗한 화이트/쿨 알라배스터 표면(\`#FFFFFF\`, \`#F6F7F9\`), 짙은 카본/슬레이트 타이포그래피(\`#0A0D12\`), 선명한 \`1px\` 구조 테두리(\`#E2E8F0\`), 그리고 의도된 단일 포인트 컬러${acc}. 다크 모드나 세리프 폰트는 사용자가 명시적으로 요청한 경우에만 사용한다.`
+  : `항상 눈부심이 적은 정제된 다크 모드 팔레트를 기본으로 한다: 깊은 그래파이트 표면(\`#0B0D10\`, \`#15181D\`), 부드러운 오프화이트 타이포그래피(\`#E6E8EB\`), 은은한 \`1px\` 구조 테두리(\`#262A31\`), 그리고 의도된 단일 포인트 컬러${acc}. 라이트 모드나 세리프 폰트는 사용자가 명시적으로 요청한 경우에만 사용한다.`}
+- 타이포그래피: 모던 고딕 / 네오 그로테스크 산세리프(Geist, Inter Display, Plus Jakarta Sans, Satoshi, Pretendard)를 강제하고, 데이터와 라벨에는 테크니컬 모노스페이스(\`tabular-nums\`)를 조합한다. 헤딩 자간은 타이트하게(\`-0.03em\`) 설정한다.
+
+2. 엄격한 금지 사항 (절대 사용 금지):
+- 비주얼 & UI 클리셰: 보라/시안 네온 그라데이션, ${L ? '다크 SF HUD' : '글로우 SF HUD, 순수 블랙 `#000` 배경'}, 따뜻한 베이지+세리프 템플릿, 대칭형 3-카드 SaaS 레이아웃, 탁한 드롭 섀도, AI 유행어("Unleash/Elevate/Seamless", "혁신적인/차원이 다른/원활한"), 이모지를 금지한다.
+- 인포그래픽 & 이미지 슬롭: 장식용 가짜 바코드, 의미 없는 필러 차트, 중복 노드 라벨, 판독 불가능한 마이크로 텍스트, 플라스틱처럼 매끈한 피부, 가짜 HDR 블룸을 엄격히 금지한다. 실제 35mm 광학과 자연광을 재현한다.`;
+    }
+  }
+};
+
+/* ---------- Build ---------- */
+function build(tier, s = state){
+  let text = T[s.lang][tier](s.mode === 'light', s.accent);
+  if (s.format === 'oneline') text = text.replace(/\s*\n+\s*/g, ' ').replace(/ {2,}/g, ' ').trim();
+  if (s.format === 'code') text = '```text\n' + text + '\n```';
+  return text;
+}
+
+function count(text){
+  const chars = [...text].length;
+  const noSpace = [...text.replace(/\s/g, '')].length;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const lines = text.split('\n').length;
+  const bytes = new TextEncoder().encode(text).length;
+  let ascii = 0, other = 0;
+  for (const ch of text) ch.charCodeAt(0) < 128 ? ascii++ : other++;
+  const tokens = Math.ceil(ascii / 4 + other * 0.9);
+  return { chars, noSpace, words, lines, bytes, tokens };
+}
+
+/* ---------- Render ---------- */
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString('en-US');
+const LANG_ATTR = { en:'en', ko:'ko', zh:'zh-CN' };
+
+function render(){
+  const text = build(state.tier);
+  const out = $('#out');
+  out.textContent = text;
+  out.setAttribute('lang', LANG_ATTR[state.lang]);
+
+  const c = count(text);
+  $('#sChars').textContent = fmt(c.chars);
+  $('#sNoSpace').textContent = fmt(c.noSpace);
+  $('#sWords').textContent = fmt(c.words);
+  $('#sLines').textContent = fmt(c.lines);
+  $('#sBytes').textContent = fmt(c.bytes);
+  $('#sTokens').textContent = '≈' + fmt(c.tokens);
+
+  document.querySelectorAll('[data-count]').forEach(el => {
+    el.textContent = fmt([...build(el.dataset.count)].length) + '자';
+  });
+
+  document.querySelectorAll('.tier').forEach(b => b.setAttribute('aria-pressed', b.dataset.tier === state.tier));
+  document.querySelectorAll('.seg').forEach(seg => {
+    seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.value === state[seg.dataset.key]));
+  });
+
+  let matched = false;
+  document.querySelectorAll('.sw[data-accent]').forEach(b => {
+    const on = b.dataset.accent === state.accent;
+    if (on) matched = true;
+    b.setAttribute('aria-pressed', on);
+  });
+  const customSw = $('#customSw');
+  customSw.setAttribute('aria-pressed', !matched);
+  if (!matched) customSw.style.setProperty('background', state.accent + '14');
+  else customSw.style.removeProperty('background');
+  $('#hexLabel').textContent = state.accent
+    ? `포인트 컬러 ${state.accent.toUpperCase()} 가 프롬프트에 포함됩니다`
+    : '자동 — 프롬프트에 HEX 미지정';
+
+  const tierLabel = { lite:'LITE', flash:'FLASH', pro:'PRO' }[state.tier];
+  const fmtLabel = { plain:'RAW', oneline:'ONE-LINE', code:'CODE' }[state.format];
+  $('#meta').innerHTML = [tierLabel, state.mode === 'light' ? 'LIGHT' : 'DARK', state.lang.toUpperCase(), fmtLabel]
+    .map(t => `<span class="tag">${t}</span>`).join('');
+
+  localStorage.setItem('antislop', JSON.stringify(state));
+}
+
+/* ---------- Events ---------- */
+document.querySelectorAll('.tier').forEach(b =>
+  b.addEventListener('click', () => { state.tier = b.dataset.tier; render(); }));
+
+document.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state[seg.dataset.key] = b.dataset.value; render();
+}));
+
+document.querySelectorAll('.sw[data-accent]').forEach(b =>
+  b.addEventListener('click', () => { state.accent = b.dataset.accent; render(); }));
+
+$('#picker').addEventListener('input', e => { state.accent = e.target.value.toUpperCase(); render(); });
+
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1600);
+}
+
+$('#copy').addEventListener('click', async () => {
+  const text = $('#out').textContent;
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); ta.remove();
+  }
+  toast(`복사되었습니다 · ${fmt([...text].length)}자`);
+});
+
+$('#download').addEventListener('click', () => {
+  const blob = new Blob([$('#out').textContent], { type:'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `AntiSlopDesign_${state.tier}_${state.mode}_${state.lang}.txt`;
+  a.click(); URL.revokeObjectURL(a.href);
+});
+
+$('#reset').addEventListener('click', () => { state = { ...DEFAULTS }; render(); toast('기본값으로 초기화했습니다'); });
+
+render();
+</script>
+</body>
+</html>
