@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AntiSlopDesign — Prompt Generator</title>
+<title>AntiSlopDesign</title>
+<meta name="description" content="Anti-Slop 디자인 프롬프트 생성기" />
+<meta name="theme-color" content="#FFFFFF" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="AntiSlop" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23D63A00'/%3E%3Cpath fill='%23fff' fill-rule='evenodd' d='M256 140 L364 372 H322 L298 318 H214 L190 372 H148 Z M228 286 H284 L256 222 Z'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -11,72 +17,65 @@
   :root{
     --bg:#F8FAFC; --surface:#FFFFFF; --ink:#0F172A; --ink-2:#334155;
     --muted:#64748B; --line:#E2E8F0; --line-strong:#CBD5E1;
-    --accent:#2563EB; --accent-ink:#FFFFFF; --radius:6px;
+    --accent:#D63A00; --accent-soft:#FFF1EB; --accent-ink:#FFFFFF; --radius:6px;
     --sans:"Source Han Sans K", "Noto Sans KR", "Source Han Sans SC", "Noto Sans SC", system-ui, sans-serif;
     --mono:"JetBrains Mono", "Source Han Sans K", "Noto Sans KR", "Noto Sans SC", ui-monospace, monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none !important}
   html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);
     -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  ::selection{background:var(--accent);color:#fff}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-  /* Header */
   header{border-bottom:1px solid var(--line);background:var(--surface)}
-  .bar{max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
-  .logo{font-weight:700;font-size:16px;letter-spacing:-0.03em;display:flex;align-items:center;gap:10px}
-  .logo i{width:10px;height:10px;background:var(--ink);display:inline-block}
-  .ver{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:2px 8px;border-radius:999px}
+  .bar{max-width:1200px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;min-height:62px}
+  .logo{font-weight:700;font-size:16px;letter-spacing:-0.03em}
 
-  /* Layout */
   main{max-width:1200px;margin:0 auto;padding:32px 24px 64px;display:grid;grid-template-columns:340px 1fr;gap:32px}
   @media (max-width:900px){main{grid-template-columns:1fr}}
 
-  h1{font-size:28px;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-bottom:6px}
-  .lead{color:var(--muted);margin-bottom:28px}
+  h1{font-size:28px;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-bottom:24px}
 
   .group{padding:20px 0;border-top:1px solid var(--line)}
   .label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
   .label span{font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:0.02em;text-transform:uppercase}
   .label small{font-family:var(--mono);font-size:11px;color:var(--muted)}
 
-  /* Segmented */
   .seg{display:flex;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:3px;gap:3px}
   .seg button{flex:1;padding:8px 10px;border-radius:4px;font-size:13px;color:var(--muted);transition:background .15s,color .15s}
   .seg button:hover{color:var(--ink)}
-  .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 
-  /* Tier list */
   .tiers{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden}
-  .tier{width:100%;display:grid;grid-template-columns:16px 1fr auto;gap:12px;align-items:center;text-align:left;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .tier{width:100%;display:grid;grid-template-columns:16px 1fr auto;gap:12px;align-items:center;text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);transition:background .15s}
   .tier:last-child{border-bottom:0}
   .tier:hover{background:var(--bg)}
-  .radio{width:14px;height:14px;border:1px solid var(--line-strong);border-radius:50%;position:relative}
-  .tier[aria-pressed="true"] .radio{border-color:var(--ink)}
-  .tier[aria-pressed="true"] .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--ink)}
+  .tier[aria-pressed="true"]{background:var(--accent-soft)}
+  .radio{width:14px;height:14px;border:1px solid var(--line-strong);border-radius:50%;position:relative;background:#fff}
+  .tier[aria-pressed="true"] .radio{border-color:var(--accent)}
+  .tier[aria-pressed="true"] .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent)}
   .tier b{display:block;font-size:14px;font-weight:600;letter-spacing:-0.01em}
   .tier em{font-style:normal;font-size:12px;color:var(--muted)}
   .tier code{font-family:var(--mono);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .tier[aria-pressed="true"] code{color:var(--accent)}
 
-  /* Accent */
   .swatches{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .sw{height:30px;min-width:30px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:12px;padding:0 10px;color:var(--muted)}
   .sw.color{padding:0;width:30px}
   .sw.color::before{content:"";width:16px;height:16px;border-radius:3px;background:var(--c)}
-  .sw[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink)}
+  .sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--ink)}
   .custom{position:relative;overflow:hidden;cursor:pointer}
   .custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
   .hex{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px}
 
-  /* Output */
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;min-height:560px;position:sticky;top:24px}
-  .panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}
-  .meta{display:flex;gap:8px;flex-wrap:wrap}
-  .tag{font-family:var(--mono);font-size:11px;border:1px solid var(--line);padding:3px 8px;border-radius:999px;color:var(--ink-2)}
-  .actions{display:flex;gap:8px}
+  .panel-head{display:flex;justify-content:flex-end;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);gap:8px}
   .btn{height:34px;padding:0 14px;border-radius:var(--radius);border:1px solid var(--line);font-size:13px;font-weight:500;background:var(--surface)}
   .btn:hover{border-color:var(--line-strong)}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-  .btn.primary:hover{filter:brightness(0.95)}
+  .btn.primary:hover{filter:brightness(0.93)}
 
   pre#out{flex:1;margin:0;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:520px}
   pre#out:lang(zh){font-family:"JetBrains Mono", "Source Han Sans SC", "Noto Sans SC", ui-monospace, monospace}
@@ -99,20 +98,18 @@
 
 <header>
   <div class="bar">
-    <div class="logo"><i></i>AntiSlopDesign</div>
-    <span class="ver">v1.1</span>
+    <div class="logo">AntiSlopDesign</div>
+    <button class="btn" id="install" hidden>앱 설치</button>
   </div>
 </header>
 
 <main>
-  <!-- Controls -->
   <section>
     <h1>Prompt Generator</h1>
-    <p class="lead">설정에 맞춰 Anti-Slop 디자인 프롬프트를 만들고 바로 복사하세요.</p>
 
     <div class="group">
       <div class="label"><span>Tier</span><small>글자 수</small></div>
-      <div class="tiers" id="tiers">
+      <div class="tiers">
         <button class="tier" data-tier="lite"><span class="radio"></span><span><b>Lite</b><em>한 단락, 최소 분량</em></span><code data-count="lite">0</code></button>
         <button class="tier" data-tier="flash"><span class="radio"></span><span><b>Flash</b><em>균형형, 2단락 지시문</em></span><code data-count="flash">0</code></button>
         <button class="tier" data-tier="pro"><span class="radio"></span><span><b>Pro</b><em>시스템 프롬프트, 구조화</em></span><code data-count="pro">0</code></button>
@@ -138,7 +135,7 @@
 
     <div class="group">
       <div class="label"><span>Accent Color</span><small>선택 사항</small></div>
-      <div class="swatches" id="swatches">
+      <div class="swatches">
         <button class="sw" data-accent="">자동</button>
         <button class="sw color" data-accent="#2563EB" style="--c:#2563EB" title="#2563EB"></button>
         <button class="sw color" data-accent="#EA580C" style="--c:#EA580C" title="#EA580C"></button>
@@ -163,15 +160,11 @@
     </div>
   </section>
 
-  <!-- Output -->
   <section>
     <div class="panel">
       <div class="panel-head">
-        <div class="meta" id="meta"></div>
-        <div class="actions">
-          <button class="btn" id="download">TXT 저장</button>
-          <button class="btn primary" id="copy">프롬프트 복사</button>
-        </div>
+        <button class="btn" id="download">TXT 저장</button>
+        <button class="btn primary" id="copy">프롬프트 복사</button>
       </div>
       <pre id="out"></pre>
       <dl class="stats">
@@ -190,6 +183,61 @@
 <div class="toast" id="toast">복사되었습니다</div>
 
 <script>
+/* ---------- PWA: 아이콘 + 매니페스트 자동 생성 ---------- */
+(function setupPWA(){
+  const ACCENT = '#D63A00';
+  const A_PATH = 'M256 140 L364 372 H322 L298 318 H214 L190 372 H148 Z M228 286 H284 L256 222 Z';
+
+  function makeIcon(size){
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = ACCENT;
+    ctx.fillRect(0, 0, size, size);
+    ctx.scale(size / 512, size / 512);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill(new Path2D(A_PATH), 'evenodd');
+    return c.toDataURL('image/png');
+  }
+
+  const icon180 = makeIcon(180), icon192 = makeIcon(192), icon512 = makeIcon(512);
+
+  const apple = document.createElement('link');
+  apple.rel = 'apple-touch-icon';
+  apple.href = icon180;
+  document.head.appendChild(apple);
+
+  const base = location.href.split('#')[0].split('?')[0];
+  const manifest = {
+    name: 'AntiSlopDesign',
+    short_name: 'AntiSlop',
+    description: 'Anti-Slop 디자인 프롬프트 생성기',
+    lang: 'ko',
+    id: base,
+    start_url: base,
+    scope: base.substring(0, base.lastIndexOf('/') + 1),
+    display: 'standalone',
+    background_color: '#F8FAFC',
+    theme_color: '#FFFFFF',
+    icons: [
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+    ]
+  };
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+  document.head.appendChild(link);
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+})();
+
+/* ---------- State ---------- */
 const DEFAULTS = { tier:'flash', mode:'light', lang:'en', accent:'', format:'plain' };
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem('antislop') || '{}'); } catch {}
@@ -342,11 +390,6 @@ function render(){
     ? `포인트 컬러 ${state.accent.toUpperCase()} 가 프롬프트에 포함됩니다`
     : '자동 — 프롬프트에 HEX 미지정';
 
-  const tierLabel = { lite:'LITE', flash:'FLASH', pro:'PRO' }[state.tier];
-  const fmtLabel = { plain:'RAW', oneline:'ONE-LINE', code:'CODE' }[state.format];
-  $('#meta').innerHTML = [tierLabel, state.mode === 'light' ? 'LIGHT' : 'DARK', state.lang.toUpperCase(), fmtLabel]
-    .map(t => `<span class="tag">${t}</span>`).join('');
-
   localStorage.setItem('antislop', JSON.stringify(state));
 }
 
@@ -388,6 +431,23 @@ $('#download').addEventListener('click', () => {
 });
 
 $('#reset').addEventListener('click', () => { state = { ...DEFAULTS }; render(); toast('기본값으로 초기화했습니다'); });
+
+/* ---------- Install button ---------- */
+let deferredPrompt = null;
+const installBtn = $('#install');
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.hidden = false;
+});
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  installBtn.hidden = true;
+});
+window.addEventListener('appinstalled', () => { installBtn.hidden = true; toast('앱이 설치되었습니다'); });
 
 render();
 </script>
